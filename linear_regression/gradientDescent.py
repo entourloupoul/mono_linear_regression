@@ -6,7 +6,7 @@
 #    By: pmasson <marvin@42.fr>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/26 14:16:32 by pmasson           #+#    #+#              #
-#    Updated: 2019/03/27 15:02:26 by pmasson          ###   ########.fr        #
+#    Updated: 2019/03/28 10:59:11 by pmasson          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -70,7 +70,7 @@ def gradient(x,y):
         sys.exit(0)
     dj = 1
     theta = np.array([[1],[1]])
-    while (dj > 0.1):
+    while (dj > 0.01):
         j1 = cost(theta, x, y)
         tmp0 = theta[0, 0] - np.vdot((np.dot(x,theta) - y).T, x[:,0]) * alpha / m
         tmp1 = theta[1, 0] - np.vdot((np.dot(x,theta) - y).T, x[:,1]) * alpha /  m
@@ -79,9 +79,10 @@ def gradient(x,y):
         dj = abs(j1 - j)
     return (theta)
 
-def write_theta(theta):
+def write_theta(theta, mu, sigma):
     ret = str()
     ret = "theta0 = " + str(theta[0, 0]) + "\n" + "theta1 = " + str(theta[1, 0])
+    ret = ret + "\nmu = " + str(mu) + "\nsigma = " + str(sigma)
     try: 
         with open(utils.thetaFile, "w") as tfile:
             tfile.write(ret)
@@ -89,12 +90,23 @@ def write_theta(theta):
         print("Error, no writting rights on thetas file")
         sys.exit(0)
 
+def normal_equ(x, y):
+    try:
+        theta2 = np.dot(np.dot(np.linalg.inv(np.dot(x.T, x)), x.T), y)
+    except np.linalg.LinAlgError:
+        print("singular matrix, normal equ can't work")
+    return(theta2)
+
 def gradient_descent():
     np.seterr(all='raise')
     x, y = get_data()
-    x = utils.normalize(x)
+    x1 = x.copy()
+    x , mu, sigma = utils.normalize(x)
     theta = gradient(x,y)
-    write_theta(theta)
+    #utils.draw_points(x1, y, theta, mu, sigma)
+    write_theta(theta, mu, sigma)
+    theta2 = normal_equ(x,y)
+    print("normal equ :\ntheta0 = {}\ntheta1 = {}".format(theta2[0,0], theta2[1,0]))
 
 
 if __name__ == "__main__":
